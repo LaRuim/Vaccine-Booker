@@ -1,6 +1,6 @@
 # Vaccine Booker
 
-A script to try and give the user the best chance of booking a vaccine on the CoWIN portal, without use of the CoWin APIs (which have become useless :/)
+A python script to try and give the user the best chance of booking a vaccine on the CoWIN portal, without use of the CoWin APIs (which have become useless :/)
 
 ## Installation
 
@@ -34,7 +34,7 @@ A script to try and give the user the best chance of booking a vaccine on the Co
 
 ### 3. Setting up a dummy account to receive the OTP:
 
-* Createa dummy gmail account, following which, delete all mails from the inbox.
+* Create a dummy gmail account, following which, delete all mails from the inbox.
 * Enable Less Secure App access [here](https://myaccount.google.com/intro/security).
 * Navigate to your [Google API console](https://console.cloud.google.com/apis/dashboard), and create a new project.
 * Under “Credentials”, select “Create credentials” and create a new “OAuth client ID”
@@ -47,11 +47,18 @@ A script to try and give the user the best chance of booking a vaccine on the Co
 
 ### 5. Refresh Token:
 
-* Run the vaccine python script once; It will prompt you to go to a link; Follow the instructions there and then on your terminal.
+* Run the vaccine python script once, as:
+```
+	python3 vaccinev4.py [MOBILE] [DUMMY EMAIL]
+```
+It will prompt you to go to a link; Follow the instructions there and then on your terminal.
 
 ### 6. Finish up
 
-* Close everything and restart the script; You can also change the alert sound.
+* Close everything and restart the script; You can also change the alert sound. Run it as:
+```
+	python3 vaccinev4.py [MOBILE] [DUMMY EMAIL]
+```
 
 ## Limitations
 
