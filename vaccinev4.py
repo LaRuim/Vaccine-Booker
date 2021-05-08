@@ -198,10 +198,6 @@ def loopscan():
                 "mobile": MOBILE
             })
             time.sleep(2)
-            if login(driver, load, click, wait_for_url) == -1:
-                print("Login failed. Rebooting")
-                driver.quit()
-                break
             with open("logout.txt", "a+") as logs:
                 logs.write(str(count)+"\n")
                 count = 0
