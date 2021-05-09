@@ -15,12 +15,26 @@ pygame.mixer.music.set_volume(1)
 parser = argparse.ArgumentParser()
 parser.add_argument("mobile", type=int, help="Mobile Number to book for")
 parser.add_argument("email", type=str, help="The dummy email the OTP is forwarded to.")
+parser.add_argument("-s", "--selective", action='store_true', help="Filters centers by names specified in centers.txt; Make surre to include a key-word (such as 'apollo'), not a hyper-specific name! (such as 'Apollo Multispeciality Hospital'")
 args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
 
-pincodes = [560011, 560017, 560060, 560076]
+pincodes = []
+with open('resources/pincodes.txt', 'r') as pincodes_file:
+    for pincode in pincodes_file:
+        pincode.strip().replace('\n', '')
+        pincodes.append(pincode)
+if len(pincodes) == 0:
+    print("Please enter at least one pincode in pincodes.txt.")
+
+center_keywords = []
+with open('resources/center_keywords.txt', 'r') as centers_file:
+    for center_keyword in centers_file:
+        center_keyword.strip().replace('\n', '')
+        center_keywords.append(center_keyword)
+
 alertstring = "Vaccine available at {}, Pincode {}\nRemaining doses: {}\nVaccination type: {}\n"
 
 try:
@@ -36,11 +50,6 @@ time.sleep(0.25)
 
 def login(driver, load, click, wait_for_url):
     try:
-        requests.post("https://cdn-api.co-vin.in/api/v2/auth/public/generateOTP", data = {
-            "mobile": MOBILE
-        })
-        OTP = otp.get_otp(EMAIL)
-        print(f"OTP: {OTP}")
         mobile = load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/ion-grid/form/ion-row/ion-col[2]/ion-item/mat-form-field/div/div[1]/div/input', duration=3)
         time.sleep(1)
         mobile.send_keys(MOBILE)
@@ -48,27 +57,35 @@ def login(driver, load, click, wait_for_url):
         load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/ion-grid/form/ion-row/ion-col[2]/div/ion-button').click()
         time.sleep(1)
 
+        OTP = otp.get_otp(EMAIL)
+        print(f"OTP: {OTP}")
         otp_form = load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col/ion-grid/form/ion-row/ion-col[2]/ion-item/mat-form-field/div/div[1]/div/input')
         otp_form.clear()
         otp_form.send_keys(OTP)
         load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col/ion-grid/form/ion-row/ion-col[3]/div/ion-button').click()
         wait_for_url('https://selfregistration.cowin.gov.in/dashboard', duration=180)
         time.sleep(3)
-
+        print('whee1')
     
 
         #load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[3]/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
         load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[3]/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li[1]/a').click()
         time.sleep(1)
-
+        print('whee2')
         load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[5]/ion-col/div/div[2]/div/ion-button').click()
-
+        print('whee3')
     except Exception as e:
         print(e)
         return -1
 
+
     
 def search(driver, load, click, wait_for_url):
+    time_now = datetime.now().time()
+    hour = int(str(time_now).split(':')[0])
+    start_date = 1
+    if hour > 16:
+        start_date = 2
     try:
         capture_time = time.strftime("%I:%M:%S %p", time.localtime())
         print(today, capture_time)
@@ -86,16 +103,25 @@ def search(driver, load, click, wait_for_url):
             #print(session, center, centers, sep='\n\n')
             #vaccines = session['available_capacity']
             #slots = ' '.join(session['slots'])    
+            
+
+
 
             #row = center_names.index(center['name'])+1
-            centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
-            
+            try:
+                centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=0.6).text
+            except:
+                continue
             ROWS = []
             for row in range(1,8):
                 try:
                     centre_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
                     #print(centre_name.lower())
-                    if 'manipal' in centre_name.lower() or 'apollo' in centre_name.lower() or 'bgs' in centre_name.lower():
+                    if parser.selective:
+                        for center_keyword in center_keywords:
+                            if center_keyword.lower() in centre_name.lower():
+                                ROWS.append(row)
+                    else:
                         ROWS.append(row)
                 except:
                     break
@@ -107,28 +133,28 @@ def search(driver, load, click, wait_for_url):
             #print(session['date'], center['name'])
 
             for row in ROWS:
-                for column in range(1,7):
+                for column in range(start_date,start_date+3):
                     try:
                         type1 = f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/a"
-                        vaccines = load(type1)
+                        vaccines = load(type1, duration=0.5)
                         if vaccines.text == 'Booked' or vaccines.text == 'NA':
-                            center_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
+                            center_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
                             center_name += (40-len(center_name))*' '
                             vaccine_text = vaccines.text
                             if vaccine_text == 'Booked':
-                                vaccine_type = load(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text
+                                vaccine_type = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text
                             else:
                                 vaccine_type = 'Unknown'
                             vaccine_type += (16-len(vaccine_type))*' '
-                            if column == 1:
+                            if column == start_date:
                                 print(center_name, pincode, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5,  vaccine_text)
                             else:
                                 print(40*' ', ' '*6, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5, vaccine_text)
                             continue
                         if int(vaccines.text) >= 1:
                             try:
-                                age_limit = load(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[2]/span').text
-                                vaccine_type = load(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text                        
+                                age_limit = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[2]/span').text
+                                vaccine_type = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text                        
                                 print(age_limit)
                                 if '45' in age_limit:
                                     continue

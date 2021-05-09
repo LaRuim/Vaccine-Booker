@@ -26,7 +26,7 @@ IMP_SSL_PORT = 993
 GOOGLE_ACCOUNTS_BASE_URL = 'https://accounts.google.com'
 REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'
 
-with open('oauthcredentials.txt') as credentials:
+with open('resources/oauthcredentials.txt') as credentials:
     credentials = list(credentials.readlines())
     GOOGLE_CLIENT_ID = credentials[0].split('=')[-1].strip(' ').replace('\n', '')
     GOOGLE_CLIENT_SECRET = credentials[1].split('=')[-1].strip(' ').replace('\n', '')
