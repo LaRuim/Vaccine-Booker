@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "2.1.0"
+VERSION = "2.1.2"
 total = args.beneficiaries
 beneficiary_id = args.id
 if beneficiary_id == None:
@@ -85,7 +85,7 @@ def login(driver, load, click, wait_for_url):
         driver.execute_script('document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child(' + str(beneficiary_id+1) + ') > ion-col > ion-grid > ion-row.dose-data.md.hydrated > ion-col:nth-child(2) > ul > li > a").scrollIntoView()')
         
         #Another driver.execute_script to scroll into view the confirmation button, if need be.
-        schedule_button = load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
+        schedule_button = load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a')
         driver.execute_script("arguments[0].click();", schedule_button)
         try:
             #driver.execute_script(f'document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child({int(total)+3}) > ion-col > div > div:nth-child(2) > div > ion-button".scrollIntoView()')
