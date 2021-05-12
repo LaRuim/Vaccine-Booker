@@ -38,7 +38,7 @@ else:
     delays['mobile_form'] = 1
     delays['empty_pincode'] = 0.6
     delays['under45_filter'] = 0.15
-    delays['load_dashboard'] = 1
+    delays['load_dashboard'] = 3
 
 pincodes = []
 with open('resources/pincodes.txt', 'r') as pincodes_file:
