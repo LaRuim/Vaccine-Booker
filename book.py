@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "2.1.2"
+VERSION = "2.2.0"
 total = args.beneficiaries
 beneficiary_id = args.id
 if beneficiary_id == None:
