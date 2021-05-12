@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "2.0.1"
+VERSION = "2.1.0"
 total = args.beneficiaries
 beneficiary_id = args.id
 if beneficiary_id == None:
@@ -82,12 +82,12 @@ def login(driver, load, click, wait_for_url):
         load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col/ion-grid/form/ion-row/ion-col[3]/div/ion-button').click()
         wait_for_url('https://selfregistration.cowin.gov.in/dashboard', duration=180)
         time.sleep(delays['load_dashboard'])
-        driver.execute_script('document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child(' + str(beneficiary_id+1) + ') > ion-col > ion-grid > ion-row.dose-data.md.hydrated > ion-col:nth-child(2) > ul > li:nth-child(1) > a").scrollIntoView()')
+        driver.execute_script('document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child(' + str(beneficiary_id+1) + ') > ion-col > ion-grid > ion-row.dose-data.md.hydrated > ion-col:nth-child(2) > ul > li > a").scrollIntoView()')
         
         #Another driver.execute_script to scroll into view the confirmation button, if need be.
         load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
         try:
-            driver.execute_script(f'document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child({int(total)+3}) > ion-col > div > div:nth-child(2) > div > ion-button".scrollIntoView()')
+            #driver.execute_script(f'document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child({int(total)+3}) > ion-col > div > div:nth-child(2) > div > ion-button".scrollIntoView()')
             load(f'/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[{int(total)+3}]/ion-col/div/div[2]/div/ion-button').click()
         except:
             pass
