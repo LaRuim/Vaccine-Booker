@@ -7,7 +7,7 @@ import winsound
 import pygame
 import argparse
 
-file = './resources/sugar.mp3'
+file = './resources/alert.mp3'
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.music.load(file)
@@ -23,6 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
+VERSION = "2.0.1"
 total = args.beneficiaries
 beneficiary_id = args.id
 if beneficiary_id == None:
@@ -242,4 +243,5 @@ def main():
     while True:
         loopscan()
 
+print(f"Perseverance v{VERSION}")
 main()
