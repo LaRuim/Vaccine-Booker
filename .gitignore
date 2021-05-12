@@ -9,5 +9,6 @@ vaccinev2d.py
 vaccinev2d2.py
 vaccinev3.py
 node_modules
+oauthcredentials.txt
 *.json
 __pycache__

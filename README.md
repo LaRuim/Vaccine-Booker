@@ -10,6 +10,8 @@ A python script to try and give the user the best chance of booking a vaccine on
 	git clone [your_forked_repository_url]
 ```
 * Extract the downloaded folder and navigate to inside the folder.
+
+* Make sure to have Python and pip installed. You can do so [here](https://www.python.org/ftp/python/3.9.5/python-3.9.5-amd64.exe)
 ### 1. Python dependencies:
 
 * Set up a virtual environment. Run ```sudo apt install python3-venv``` if you do not have venv in your system.
@@ -56,13 +58,21 @@ It will prompt you to go to a link; Follow the instructions there and then on yo
 ### 6. Finish up
 
 * Enter the pincodes you want to scan through in [pincodes.txt](resources/pincodes.txt), one in each line, in the folder resources.
-* Close everything and restart the script; You can also change the alert sound. Run it as:
+* Close everything and restart the script; You can also change the alert sound by replacing the provided [sugar.mp3](resources/sugar.mp3) with your own mp3 file and renaming it as 'sugar.mp3'.
+
+## Execution
+
+Open up a terminal in the folder containing [book.py](book.py). Type the below command(s):
 ```
-	python3 book.py [MOBILE] [DUMMY EMAIL]
+	python3 book.py [MOBILE] [DUMMY EMAIL] [optional BENEFICIARY NUMBER]
 ```
 or, if you prefer particular centers, enter their keywords in [centers.txt](resources/centers.txt) in the folder resources, and run as:
 ```
-	python3 book.py [MOBILE] [DUMMY EMAIL] -s
+	python3 book.py [MOBILE] [DUMMY EMAIL] [optional BENEFICIARY NUMBER] -s
+```
+If the script doesn't seem to be working, it's possible that your internet is a tad too slow for the script. If that's the case, run as:
+```
+	python3 book.py [MOBILE] [DUMMY EMAIL] [optional BENEFICIARY NUMBER] [optional -s] --slow
 ```
 
 Example values for both the above are aleady in the text files.

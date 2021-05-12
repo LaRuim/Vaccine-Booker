@@ -13,13 +13,31 @@ pygame.mixer.init()
 pygame.mixer.music.load(file)
 pygame.mixer.music.set_volume(1)
 parser = argparse.ArgumentParser()
-parser.add_argument("mobile", type=int, help="Mobile Number to book for")
+parser.add_argument("mobile", type=int, help="Mobile Number to book for.")
 parser.add_argument("email", type=str, help="The dummy email the OTP is forwarded to.")
-parser.add_argument("-s", "--selective", action='store_true', help="Filters centers by names specified in centers.txt; Make surre to include a key-word (such as 'apollo'), not a hyper-specific name! (such as 'Apollo Multispeciality Hospital'")
+parser.add_argument("beneficiaries", type=int, help="Total number of beneficiaries registered for your mobile number.")
+parser.add_argument('id', nargs='?', const=1, type=int, help="Which beneficiary? 1, 2, etc.")
+parser.add_argument("-s", "--selective", action='store_true', help="Filters centers by names specified in centers.txt; Make sure to include a key-word (such as 'apollo'), not a hyper-specific name! (such as 'Apollo Multispeciality Hospital'")
+parser.add_argument('--slow', action='store_true', help="Adjusts delays for slow internet.")
 args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
+total = args.beneficiaries
+beneficiary_id = args.id
+if beneficiary_id == None:
+    beneficiary_id = 1
+delays = dict()
+if args.slow:
+    delays['mobile_form'] = 3
+    delays['empty_pincode'] = 1
+    delays['under45_filter'] = 0.4
+    delays['load_dashboard'] = 5
+else:
+    delays['mobile_form'] = 1
+    delays['empty_pincode'] = 0.6
+    delays['under45_filter'] = 0.15
+    delays['load_dashboard'] = 1
 
 pincodes = []
 with open('resources/pincodes.txt', 'r') as pincodes_file:
@@ -50,12 +68,10 @@ time.sleep(0.25)
 
 def login(driver, load, click, wait_for_url):
     try:
-        mobile = load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/ion-grid/form/ion-row/ion-col[2]/ion-item/mat-form-field/div/div[1]/div/input', duration=3)
-        time.sleep(1)
+        mobile = load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/ion-grid/form/ion-row/ion-col[2]/ion-item/mat-form-field/div/div[1]/div/input', duration=delays['mobile_form'])
         mobile.send_keys(MOBILE)
         time.sleep(1)
         load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/ion-grid/form/ion-row/ion-col[2]/div/ion-button').click()
-        time.sleep(1)
 
         OTP = otp.get_otp(EMAIL)
         print(f"OTP: {OTP}")
@@ -64,16 +80,17 @@ def login(driver, load, click, wait_for_url):
         otp_form.send_keys(OTP)
         load('/html/body/app-root/ion-app/ion-router-outlet/app-login/ion-content/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col/ion-grid/form/ion-row/ion-col[3]/div/ion-button').click()
         wait_for_url('https://selfregistration.cowin.gov.in/dashboard', duration=180)
-        time.sleep(3)
-        print('whee1')
-    
-
-        #load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[3]/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
-        load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[3]/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li[1]/a').click()
-        time.sleep(1)
-        print('whee2')
-        load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[5]/ion-col/div/div[2]/div/ion-button').click()
-        print('whee3')
+        time.sleep(delays['load_dashboard'])
+        driver.execute_script('document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child(' + str(beneficiary_id+1) + ') > ion-col > ion-grid > ion-row.dose-data.md.hydrated > ion-col:nth-child(2) > ul > li:nth-child(1) > a").scrollIntoView()')
+        
+        #Another driver.execute_script to scroll into view the confirmation button, if need be.
+        load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
+        try:
+            driver.execute_script(f'document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child({int(total)+3}) > ion-col > div > div:nth-child(2) > div > ion-button".scrollIntoView()')
+            load(f'/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[{int(total)+3}]/ion-col/div/div[2]/div/ion-button').click()
+        except:
+            pass
+        return 1
     except Exception as e:
         print(e)
         return -1
@@ -99,17 +116,11 @@ def search(driver, load, click, wait_for_url):
             pincode_box.clear()
             pincode_box.send_keys(pincode)
             load('/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[3]/ion-button').click()
+            driver.execute_script('document.querySelector("#c1").click()')
+            time.sleep(delays['under45_filter'])
 
-            #print(session, center, centers, sep='\n\n')
-            #vaccines = session['available_capacity']
-            #slots = ' '.join(session['slots'])    
-            
-
-
-
-            #row = center_names.index(center['name'])+1
             try:
-                centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=0.6).text
+                centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=delays['empty_pincode']).text
             except:
                 continue
             ROWS = []
@@ -136,7 +147,7 @@ def search(driver, load, click, wait_for_url):
                 for column in range(start_date,start_date+3):
                     try:
                         type1 = f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/a"
-                        vaccines = load(type1, duration=0.5)
+                        vaccines = load(type1)
                         if vaccines.text == 'Booked' or vaccines.text == 'NA':
                             center_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
                             center_name += (40-len(center_name))*' '
@@ -165,8 +176,8 @@ def search(driver, load, click, wait_for_url):
                                 continue                    
                             
                         vaccines.click()
+                        pygame.mixer.music.play()
                         #winsound.Beep(4400, 2500) 
-                        time.sleep(0.25)    
                     except Exception as e:
                         print("Double Slot Error\n")
                         print(e)
@@ -178,21 +189,20 @@ def search(driver, load, click, wait_for_url):
                                 if vaccines.text == 'Booked' or vaccines.text == 'NA':
                                     continue
                                 vaccines.click()
-                                time.sleep(0.25)  
+                                pygame.mixer.music.play()
                         except Exception as e:
                             print('FATAL ERROR')
                             print(e)
                             return
                     load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/div/ion-button[2]").click()
-                    pygame.mixer.music.play()
-                    input()
-                    try:
+                    input("Press Enter to resume.")
+                    """try:
                         load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row[3]/ion-col/div/ion-button").click()
                     except:
                         print('THIS IS WHAT HELPS!')
-                        load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row[3]/ion-col/div/ion-button//button").click()
-                    winsound.Beep(4400, 25000)
-                    print(alertstring.format('Something', pincode, vaccines.text, vaccine_type))
+                        load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row[3]/ion-col/div/ion-button//button").click()"""
+                    #winsound.Beep(4400, 25000)
+                    #print(alertstring.format('Something', pincode, vaccines.text, vaccine_type))
                     #print(f"Nothing at {center['name']}")
                 print("-"*115)
                 #time.sleep(1)
@@ -212,9 +222,9 @@ def loopscan():
     while True:
         if (search(driver, load, click, wait_for_url) == -1):
             ecounter += 1
-        if (ecounter > 5):
+        if (ecounter > 2):
             print("Rate limit reached. Rebooting.")
-            winsound.Beep(4400, 2500)
+            winsound.Beep(4400, 250)
             driver.quit()
             break
         if count % 15 == 0:
@@ -224,9 +234,7 @@ def loopscan():
                 "mobile": MOBILE
             })
             time.sleep(2)
-            with open("logout.txt", "a+") as logs:
-                logs.write(str(count)+"\n")
-                count = 0
+            count = 0
         count += 1
         print(f"\n\n\nCOUNT: {count}\n\n\n")
 
