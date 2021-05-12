@@ -85,10 +85,12 @@ def login(driver, load, click, wait_for_url):
         driver.execute_script('document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child(' + str(beneficiary_id+1) + ') > ion-col > ion-grid > ion-row.dose-data.md.hydrated > ion-col:nth-child(2) > ul > li > a").scrollIntoView()')
         
         #Another driver.execute_script to scroll into view the confirmation button, if need be.
-        load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
+        schedule_button = load('/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[' + str(beneficiary_id+1) + ']/ion-col/ion-grid/ion-row[4]/ion-col[2]/ul/li/a').click()
+        driver.execute_script("arguments[0].click();", schedule_button)
         try:
             #driver.execute_script(f'document.querySelector("#main-content > app-beneficiary-dashboard > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid.beneficiary-box.md.hydrated > ion-row:nth-child({int(total)+3}) > ion-col > div > div:nth-child(2) > div > ion-button".scrollIntoView()')
-            load(f'/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[{int(total)+3}]/ion-col/div/div[2]/div/ion-button').click()
+            confirm_button = load(f'/html/body/app-root/ion-app/ion-router-outlet/app-beneficiary-dashboard/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid[1]/ion-row[{int(total)+3}]/ion-col/div/div[2]/div/ion-button')
+            driver.execute_script("arguments[0].click();", confirm_button)
         except:
             pass
         return 1
@@ -108,7 +110,7 @@ def search(driver, load, click, wait_for_url):
         capture_time = time.strftime("%I:%M:%S %p", time.localtime())
         print(today, capture_time)
         print()
-        print('Vaccination Center'+((40-len('Vaccination Center'))*' '), 'Pincode', ' '*2, 'Vaccine Type'+' '*4, 'Date'+((15-len('Date'))*' '), 'Status')
+        
         print("-"*115)
         print("-"*115)
         for pincode in pincodes:
@@ -119,10 +121,11 @@ def search(driver, load, click, wait_for_url):
             load('/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[3]/ion-button').click()
             driver.execute_script('document.querySelector("#c1").click()')
             time.sleep(delays['under45_filter'])
-
+            #print("18+ Filter enabled")
             try:
                 centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=delays['empty_pincode']).text
             except:
+                print("No 18+ centers in this pincode.")
                 continue
             ROWS = []
             for row in range(1,8):
@@ -137,13 +140,10 @@ def search(driver, load, click, wait_for_url):
                         ROWS.append(row)
                 except:
                     break
-            #column = int(session['date'].split('-')[0]) - int(today.split('-')[0]) + 1
+
             column = 2
-
-            #print(ROWS)
-            #print(row, column)
-            #print(session['date'], center['name'])
-
+            print("Obtained centers. The indices are:", ROWS)
+            print('Vaccination Center'+((40-len('Vaccination Center'))*' '), 'Pincode', ' '*2, 'Vaccine Type'+' '*4, 'Date'+((15-len('Date'))*' '), 'Status')
             for row in ROWS:
                 for column in range(start_date,start_date+3):
                     try:
@@ -173,7 +173,7 @@ def search(driver, load, click, wait_for_url):
                                 elif '18' not in age_limit:
                                     continue
                             except Exception as e:
-                                print("NOOOOOOOOOO", e)
+                                print(e)
                                 continue                    
                             
                         vaccines.click()
@@ -197,14 +197,6 @@ def search(driver, load, click, wait_for_url):
                             return
                     load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/div/ion-button[2]").click()
                     input("Press Enter to resume.")
-                    """try:
-                        load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row[3]/ion-col/div/ion-button").click()
-                    except:
-                        print('THIS IS WHAT HELPS!')
-                        load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row[3]/ion-col/div/ion-button//button").click()"""
-                    #winsound.Beep(4400, 25000)
-                    #print(alertstring.format('Something', pincode, vaccines.text, vaccine_type))
-                    #print(f"Nothing at {center['name']}")
                 print("-"*115)
                 #time.sleep(1)
     except Exception as e:

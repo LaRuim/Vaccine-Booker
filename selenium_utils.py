@@ -18,6 +18,7 @@ def make_driver(profile=2, version='Windows'):
     chromeOptions.add_argument('--ignore-certificate-errors')
     chromeOptions.add_argument('--ignore-certificate-errors-spki-list')
     chromeOptions.add_argument("--incognito")
+    chromeOptions.add_argument("--start-maximized")
     chromeOptions.add_argument('--ignore-ssl-errors')
     chromeOptions.add_experimental_option("excludeSwitches", ["enable-logging"])
     return webdriver.Chrome(executable_path='chromedriver', options=chromeOptions, service_log_path='NUL')
