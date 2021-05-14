@@ -12,3 +12,4 @@ node_modules
 oauthcredentials.txt
 *.json
 __pycache__
+captcha_samples

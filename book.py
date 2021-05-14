@@ -23,8 +23,13 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "2.2.0"
+VERSION = "2.3.0"
 total = args.beneficiaries
+selective = None
+try:
+    selective = parser.selective
+except:
+    selective = False
 beneficiary_id = args.id
 if beneficiary_id == None:
     beneficiary_id = 1
@@ -125,14 +130,14 @@ def search(driver, load, click, wait_for_url):
             try:
                 centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=delays['empty_pincode']).text
             except:
-                print("No 18+ centers in this pincode.")
+                #print("No 18+ centers in this pincode.")
                 continue
             ROWS = []
             for row in range(1,8):
                 try:
                     centre_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
                     #print(centre_name.lower())
-                    if parser.selective:
+                    if selective:
                         for center_keyword in center_keywords:
                             if center_keyword.lower() in centre_name.lower():
                                 ROWS.append(row)
@@ -142,7 +147,7 @@ def search(driver, load, click, wait_for_url):
                     break
 
             column = 2
-            print("Obtained centers. The indices are:", ROWS)
+            #print("Obtained centers. The indices are:", ROWS)
             print('Vaccination Center'+((40-len('Vaccination Center'))*' '), 'Pincode', ' '*2, 'Vaccine Type'+' '*4, 'Date'+((15-len('Date'))*' '), 'Status')
             for row in ROWS:
                 for column in range(start_date,start_date+3):
