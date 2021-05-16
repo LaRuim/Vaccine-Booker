@@ -3,7 +3,6 @@ from datetime import date, datetime
 import time
 import selenium_utils
 import otp
-import winsound
 import pygame
 import argparse
 
@@ -24,7 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "3.0.0"
+VERSION = "3.0.1"
 total = args.beneficiaries
 selective = None
 try:
@@ -74,8 +73,6 @@ except:
     exit()
 
 today = date.today().strftime("%d-%m-%Y")
-
-winsound.Beep(4400, 2500) 
 time.sleep(0.25)  
 
 def login(driver, load, click, wait_for_url):
@@ -242,7 +239,6 @@ def loopscan():
             ecounter += 1
         if (ecounter > 3):
             print("Rate limit reached. Rebooting.")
-            winsound.Beep(4400, 250)
             driver.quit()
             break
         if count % 15 == 0:
