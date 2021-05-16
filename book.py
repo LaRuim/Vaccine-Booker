@@ -17,19 +17,25 @@ parser.add_argument("mobile", type=int, help="Mobile Number to book for.")
 parser.add_argument("email", type=str, help="The dummy email the OTP is forwarded to.")
 parser.add_argument("beneficiaries", type=int, help="Total number of beneficiaries registered for your mobile number.")
 parser.add_argument('id', nargs='?', const=1, type=int, help="Which beneficiary? 1, 2, etc.")
-parser.add_argument("-s", "--selective", action='store_true', help="Filters centers by names specified in centers.txt; Make sure to include a key-word (such as 'apollo'), not a hyper-specific name! (such as 'Apollo Multispeciality Hospital'")
+parser.add_argument("-s", "--selective", action='store_true', help="Filters centres by names specified in centres.txt; Make sure to include a key-word (such as 'apollo'), not a hyper-specific name! (such as 'Apollo Multispeciality Hospital'")
 parser.add_argument('--slow', action='store_true', help="Adjusts delays for slow internet.")
+parser.add_argument('--filter', action='store_true', help="Clicks the Age 18+ filter. This can help with monitors of smaller sizes")
 args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "2.3.0"
+VERSION = "3.0.0"
 total = args.beneficiaries
 selective = None
 try:
     selective = parser.selective
 except:
     selective = False
+visual_filter = None
+try:
+    visual_filter = args.filter
+except:
+    visual_filter = False
 beneficiary_id = args.id
 if beneficiary_id == None:
     beneficiary_id = 1
@@ -37,12 +43,12 @@ delays = dict()
 if args.slow:
     delays['mobile_form'] = 3
     delays['empty_pincode'] = 1
-    delays['under45_filter'] = 0.4
+    delays['under45_filter'] = 0.7
     delays['load_dashboard'] = 5
 else:
     delays['mobile_form'] = 1
     delays['empty_pincode'] = 0.6
-    delays['under45_filter'] = 0.15
+    delays['under45_filter'] = 0.35
     delays['load_dashboard'] = 3
 
 pincodes = []
@@ -53,11 +59,11 @@ with open('resources/pincodes.txt', 'r') as pincodes_file:
 if len(pincodes) == 0:
     print("Please enter at least one pincode in pincodes.txt.")
 
-center_keywords = []
-with open('resources/center_keywords.txt', 'r') as centers_file:
-    for center_keyword in centers_file:
-        center_keyword.strip().replace('\n', '')
-        center_keywords.append(center_keyword)
+centre_keywords = []
+with open('resources/centre_keywords.txt', 'r') as centres_file:
+    for centre_keyword in centres_file:
+        centre_keyword.strip().replace('\n', '')
+        centre_keywords.append(centre_keyword)
 
 alertstring = "Vaccine available at {}, Pincode {}\nRemaining doses: {}\nVaccination type: {}\n"
 
@@ -116,30 +122,35 @@ def search(driver, load, click, wait_for_url):
         print(today, capture_time)
         print()
         
+       
+        print('Vaccination Center'+((40-len('Vaccination Center'))*' '), 'Pincode', ' '*2, 'Vaccine Type'+' '*4, 'Date'+((15-len('Date'))*' '), 'Status')
         print("-"*115)
         print("-"*115)
         for pincode in pincodes:
 
-            pincode_box = load('/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[2]/mat-form-field/div/div[1]/div/input')
+            pincode_box = load('#mat-input-0', options='css')
             pincode_box.clear()
             pincode_box.send_keys(pincode)
-            load('/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[3]/ion-button').click()
-            driver.execute_script('document.querySelector("#c1").click()')
-            time.sleep(delays['under45_filter'])
-            #print("18+ Filter enabled")
+            load('#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.ion-text-start.ng-star-inserted.md.hydrated > ion-button', options='css').click()
+            if visual_filter:
+                driver.execute_script('document.querySelector("#c1").click()')
+                time.sleep(delays['under45_filter'])
+                #print("18+ Filter enabled")
+            centre_name = None
             try:
-                centre_name = load(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[1]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5", duration=delays['empty_pincode']).text
+                centre_name = load("#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.matlistingblock.ng-star-inserted.md.hydrated > div > div > mat-selection-list > div:nth-child(1) > mat-list-option > div > div.mat-list-text > ion-row > ion-col.main-slider-wrap.md.hydrated > div > h5", options='css', duration=delays['empty_pincode']).text
             except:
-                #print("No 18+ centers in this pincode.")
+                #print("No 18+ centres in this pincode.")
                 continue
+
             ROWS = []
             for row in range(1,8):
                 try:
-                    centre_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
+                    centre_name = driver.find_element_by_css_selector("#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.matlistingblock.ng-star-inserted.md.hydrated > div > div > mat-selection-list > div:nth-child(" + str(row) + ") > mat-list-option > div > div.mat-list-text > ion-row > ion-col.main-slider-wrap.md.hydrated > div > h5").text
                     #print(centre_name.lower())
                     if selective:
-                        for center_keyword in center_keywords:
-                            if center_keyword.lower() in centre_name.lower():
+                        for centre_keyword in centre_keywords:
+                            if centre_keyword.lower() in centre_name.lower():
                                 ROWS.append(row)
                     else:
                         ROWS.append(row)
@@ -147,31 +158,37 @@ def search(driver, load, click, wait_for_url):
                     break
 
             column = 2
-            #print("Obtained centers. The indices are:", ROWS)
-            print('Vaccination Center'+((40-len('Vaccination Center'))*' '), 'Pincode', ' '*2, 'Vaccine Type'+' '*4, 'Date'+((15-len('Date'))*' '), 'Status')
+            #print("Obtained centres. The indices are:", ROWS)
+            
             for row in ROWS:
                 for column in range(start_date,start_date+3):
                     try:
-                        type1 = f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/a"
-                        vaccines = load(type1)
+                        type1 = "#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.matlistingblock.ng-star-inserted.md.hydrated > div > div > mat-selection-list > div:nth-child(" + str(row) + ") > mat-list-option > div > div.mat-list-text > ion-row > ion-col.slot-available-main.col-padding.md.hydrated > ul > li:nth-child(" + str(column) + ") > div > div > {}"
+                        vaccines = load(type1.format("a"), options='css')
                         if vaccines.text == 'Booked' or vaccines.text == 'NA':
-                            center_name = driver.find_element_by_xpath(f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[1]/div/h5").text
-                            center_name += (40-len(center_name))*' '
+                            centre_name = driver.find_element_by_css_selector("#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.matlistingblock.ng-star-inserted.md.hydrated > div > div > mat-selection-list > div:nth-child(" + str(row) + ") > mat-list-option > div > div.mat-list-text > ion-row > ion-col.main-slider-wrap.md.hydrated > div > h5").text
+                            centre_name += (40-len(centre_name))*' '
                             vaccine_text = vaccines.text
                             if vaccine_text == 'Booked':
-                                vaccine_type = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text
+                                vaccine_type = driver.find_element_by_css_selector(type1.format("div.vaccine-cnt > h5")).text
+                                age_limit = driver.find_element_by_css_selector(type1.format("div.ng-star-inserted > span")).text
+                                if '18' not in age_limit:
+                                    continue    
                             else:
                                 vaccine_type = 'Unknown'
+                                continue
                             vaccine_type += (16-len(vaccine_type))*' '
-                            if column == start_date:
-                                print(center_name, pincode, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5,  vaccine_text)
+                            print(centre_name, pincode, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5,  vaccine_text)
+                            """if column == start_date:
+                                print(centre_name, pincode, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5,  vaccine_text)
                             else:
-                                print(40*' ', ' '*6, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5, vaccine_text)
+                                print(centre_name, ' '*6, ' '*3, vaccine_type, str(int(today[:2])+column-1).zfill(2)+today[2:]+' '*5, vaccine_text)"""
+                            print("-"*115)
                             continue
                         if int(vaccines.text) >= 1:
                             try:
-                                age_limit = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[2]/span').text
-                                vaccine_type = driver.find_element_by_xpath(f'/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div/div/div[1]/h5').text                        
+                                age_limit = driver.find_element_by_css_selector(type1.format("div.ng-star-inserted > span")).text
+                                vaccine_type = driver.find_element_by_css_selector(type1.format("div.vaccine-cnt > h5")).text                        
                                 print(age_limit)
                                 if '45' in age_limit:
                                     continue
@@ -190,9 +207,9 @@ def search(driver, load, click, wait_for_url):
                         print()
                         try:
                             for subcolumn in [1,2]:
-                                type2 = f"/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[2]/form/ion-grid/ion-row/ion-col[8]/div/div/mat-selection-list/div[{row}]/mat-list-option/div/div[2]/ion-row/ion-col[2]/ul/li[{column}]/div[{subcolumn}]/div/a"
-                                vaccines = load(type2)
-                                if vaccines.text == 'Booked' or vaccines.text == 'NA':
+                                type2 = "#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col:nth-child(2) > form > ion-grid > ion-row > ion-col.col-padding.matlistingblock.ng-star-inserted.md.hydrated > div > div > mat-selection-list > div:nth-child(" + str(row) + ") > mat-list-option > div > div.mat-list-text > ion-row > ion-col.slot-available-main.col-padding.md.hydrated > ul > li:nth-child(" + str(column) + ") > div:nth-child(" + str(subcolumn) +") > div > a"
+                                vaccines = load(type2, options='css')
+                                if vaccines.text == 'Booked' or vaccines.text == 'NA' or vaccines.text == '0':
                                     continue
                                 vaccines.click()
                                 pygame.mixer.music.play()
@@ -200,9 +217,12 @@ def search(driver, load, click, wait_for_url):
                             print('FATAL ERROR')
                             print(e)
                             return
-                    load("/html/body/app-root/ion-app/ion-router-outlet/app-appointment-table/ion-content/div/div/ion-grid/ion-row/ion-col/ion-grid/ion-row/ion-col[1]/div/ion-button[2]").click()
+                    try:
+                        load("#main-content > app-appointment-table > ion-content > div > div > ion-grid > ion-row > ion-col > ion-grid > ion-row > ion-col.register-header.md.hydrated > div > ion-button.time-slot.ng-star-inserted.md.button.button-solid.ion-activatable.ion-focusable.hydrated.activeBtn", options='css').click()
+                    except:
+                        print("CHOOSE TIMESLOT TOO!")
                     input("Press Enter to resume.")
-                print("-"*115)
+                
                 #time.sleep(1)
     except Exception as e:
         print(e)
@@ -220,7 +240,7 @@ def loopscan():
     while True:
         if (search(driver, load, click, wait_for_url) == -1):
             ecounter += 1
-        if (ecounter > 2):
+        if (ecounter > 3):
             print("Rate limit reached. Rebooting.")
             winsound.Beep(4400, 250)
             driver.quit()

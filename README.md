@@ -1,4 +1,5 @@
-# Vaccine Booker
+# Perseverance, a Vaccine Booker
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/LaRuim/Vaccine-Booker/graphs/commit-activity)
 
 A python script to try and give the user the best chance of booking a vaccine on the CoWIN portal, without use of the CoWin APIs (which have become useless :/)
 
@@ -35,6 +36,7 @@ A python script to try and give the user the best chance of booking a vaccine on
 * Under “Credentials”, select “Create credentials” and create a new “OAuth client ID”
 * You will be asked which type of app will use this ID, choose “Desktop Application”.
 * This will allow you to access your client ID and secret key; Paste these in [oauthcredentials.txt](resources/oauthcredentials.txt), located in the folder resources; Make sure to have no spaces before or after the '=' symbol in the file.
+* Make sure to publish your Project by changing the **Publishing Status** of the project to 'In production', in the **OAuth consent screen** section. This is VERY important, and without doing this, the OTP system cannot work.
 
 ### 4. Forwarding your OTP to this email:
 
@@ -59,7 +61,7 @@ Open up a terminal in the folder containing [book.py](book.py). Type the below c
 ```
 	python3 book.py [MOBILE] [DUMMY EMAIL] [NUMBER OF BENEFICIARIES IN MOBILE] [optional BENEFICIARY NUMBER]
 ```
-or, if you prefer particular centers, enter their keywords in [centers.txt](resources/centers.txt) in the folder resources, and run as:
+or, if you prefer particular centres, enter their keywords in [centre_keywords.txt](resources/centre_keywords.txt) in the folder resources, and run as:
 ```
 	python3 book.py [MOBILE] [DUMMY EMAIL] [NUMBER OF BENEFICIARIES IN MOBILE] [optional BENEFICIARY NUMBER] -s
 ```

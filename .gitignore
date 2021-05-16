@@ -1,15 +1,9 @@
 mail.py
 mail2.py
-vaccinev1.js
-vaccinev2.py
-vaccinev2a.py
-vaccinev2b.py
 vaccinev2c.py
 vaccinev2d.py
 vaccinev2d2.py
 vaccinev3.py
-node_modules
-oauthcredentials.txt
-*.json
 __pycache__
+chromedriver.exe
 captcha_samples
