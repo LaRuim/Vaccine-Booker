@@ -23,7 +23,7 @@ args = parser.parse_args()
 
 MOBILE = str(args.mobile)
 EMAIL = args.email
-VERSION = "3.0.1"
+VERSION = "3.1.0"
 total = args.beneficiaries
 selective = None
 try:
@@ -225,11 +225,8 @@ def search(driver, load, click, wait_for_url):
         print(e)
         return -1
 
-def loopscan():
-    driver = selenium_utils.make_driver(profile=3)
-    load = selenium_utils.load(driver)
-    click = selenium_utils.click(driver)
-    wait_for_url = selenium_utils.wait_for_url(driver)
+def loopscan(driver, load, click, wait_for_url):
+
     driver.get("https://selfregistration.cowin.gov.in/")
     login(driver, load, click, wait_for_url)
     count = 0
@@ -239,7 +236,7 @@ def loopscan():
             ecounter += 1
         if (ecounter > 3):
             print("Rate limit reached. Rebooting.")
-            driver.quit()
+            #driver.quit()
             break
         if count % 15 == 0:
             driver.refresh()
@@ -253,8 +250,12 @@ def loopscan():
         print(f"\n\n\nCOUNT: {count}\n\n\n")
 
 def main():
+    driver = selenium_utils.make_driver(profile=3)
+    load = selenium_utils.load(driver)
+    click = selenium_utils.click(driver)
+    wait_for_url = selenium_utils.wait_for_url(driver)
     while True:
-        loopscan()
+        loopscan(driver, load, click, wait_for_url)
 
 print(f"Perseverance v{VERSION}")
 main()
